@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <UserSecretsId>aspnet-SimpleTrading.Candles.HttpServer-C6BA8C00-B4E5-4D80-8AFA-93B98125C32C</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.7" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="1.13.1" />
+        <PackageReference Include="SimpleTrading.Abstraction" Version="2.0.11" />
+        <PackageReference Include="SimpleTrading.CandlesCache" Version="1.0.1" />
+        <PackageReference Include="SimpleTrading.MyNoSqlRepositories" Version="2.0.30" />
+        <PackageReference Include="SimpleTrading.ServiceBus" Version="4.0.2" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    </ItemGroup>
+
+</Project>

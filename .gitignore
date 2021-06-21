@@ -1,0 +1,14 @@
+.idea
+.vscode
+.vs
+.DS_Store
+*.user
+**/*.min.css
+**/*.js.css
+
+**/*.blob
+
+**/bin
+**/obj
+**/app
+**/node_modules
