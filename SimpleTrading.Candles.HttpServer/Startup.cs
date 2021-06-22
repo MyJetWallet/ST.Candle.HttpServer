@@ -43,6 +43,7 @@ namespace SimpleTrading.Candles.HttpServer
             _myServiceBusTcpClient = Di.BindServiceBus(Settings);
             Di.BindCacheQueue(Settings);
             Di.BindLogger(Settings);
+            Di.BindGrpcServices();
             BackgroundJobs.Init();
             ServiceLocator.BindSubscribers();
             ServiceLocator.Init(Di, GetSessionEncodingKey());

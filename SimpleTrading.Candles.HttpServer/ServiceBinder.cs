@@ -7,6 +7,8 @@ using Serilog;
 using Serilog.Core;
 using SimpleTrading.Abstraction.BidAsk;
 using SimpleTrading.CandlesCache;
+using SimpleTrading.CandlesHistory.Grpc;
+using SimpleTrading.GrpcTemplate;
 using SimpleTrading.ServiceBus.PublisherSubscriber.BidAsk;
 using SimpleTrading.Telemetry;
 
@@ -43,6 +45,18 @@ namespace SimpleTrading.Candles.HttpServer
             sr.Register<ILogger>(logger);
 
             return logger;
+
+        }
+        
+        public static void BindGrpcServices(this IServiceRegistrator sr)
+        {
+            var candlesGrpc = new GrpcServiceClient<ISimpleTradingCandlesHistoryGrpc>(
+                () => SettingsReader
+                    .SettingsReader
+                    .ReadSettings<SettingsModel>()
+                    .CandlesSource);
+
+            sr.Register(candlesGrpc.Value);
 
         }
         
