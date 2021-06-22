@@ -1,89 +1,10 @@
-image: mcr.microsoft.com/dotnet/core/sdk:3.1
+image: mcr.microsoft.com/dotnet/sdk:5.0-alpine
 
 variables:
-  APP_VERSION: 1.0.6
-  APP_DEV_VERSION: ${APP_VERSION}-${CI_COMMIT_REF_NAME}
-  BUILD_FOLDER: SimpleTrading.CandlesHistory.Server
-  TEST_FOLDER: SimpleTrading.CandlesHistory.Tests
-  DOCKER_IMAGE_TAG: monfex/simple-trading-candleshistory
+  BUILD_FOLDER: SimpleTrading.Candles.HttpServer
+  DOCKER_IMAGE_TAG: monfex/simple-trading-candles-api
 
-stages:
-  - test
-  - build
-  - publish
-
-test:
-  stage: test
-  tags: [monfex]
-  script:
-    - cd ${TEST_FOLDER}
-    - dotnet test
-  only:
-    - test
-    - develop
-    - master
-
-build:
-  stage: build
-  tags: [monfex]
-  script:
-    - cd ${BUILD_FOLDER}
-    - dotnet publish -o app -c release
-  artifacts:
-    paths:
-      - ${BUILD_FOLDER}
-  only:
-    - test
-    - develop
-    - master
-
-publish-test:
-  stage: publish
-  tags: [monfex]
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay
-  script:
-    - cd ${BUILD_FOLDER}
-    - ls app
-    - echo "$DOCKER_LOGIN"
-    - echo "$DOCKER_PASSWORD" | docker login $DOCKER_REGISTRY_HOST --username $DOCKER_LOGIN --password-stdin
-    - docker build  --build-arg app_version=${DOCKER_IMAGE_TAG}:${APP_VERSION} --build-arg app_compilation_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -t $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_VERSION}-${CI_COMMIT_REF_NAME}-${CI_PIPELINE_ID} .
-    - docker push $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_VERSION}-${CI_COMMIT_REF_NAME}-${CI_PIPELINE_ID}
-  image: docker:latest
-  only:
-    - test
-
-publish-prod:
-  stage: publish
-  tags: [monfex]
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay
-  script:
-    - cd ${BUILD_FOLDER}
-    - ls app
-    - echo "$DOCKER_LOGIN"
-    - echo "$DOCKER_PASSWORD" | docker login $DOCKER_REGISTRY_HOST --username $DOCKER_LOGIN --password-stdin
-    - docker build  --build-arg app_version=${DOCKER_IMAGE_TAG}:${APP_VERSION} --build-arg app_compilation_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -t $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_VERSION} .
-    - docker push $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_VERSION}
-  image: docker:latest
-  only:
-    - master
-
-publish-dev:
-  stage: publish
-  services:
-    - docker:dind
-  script:
-    - cd ${BUILD_FOLDER}
-    - ls app
-    - echo "$DOCKER_LOGIN"
-    - echo "$DOCKER_PASSWORD" | docker login $DOCKER_REGISTRY_HOST --username $DOCKER_LOGIN --password-stdin
-    - docker build  --build-arg app_version=${DOCKER_IMAGE_TAG}:${APP_DEV_VERSION} --build-arg app_compilation_date=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -t $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_DEV_VERSION} .
-    - docker push $DOCKER_REGISTRY_HOST/${DOCKER_IMAGE_TAG}:${APP_DEV_VERSION}
-  image: docker:latest
-  only:
-    - develop
+include:
+  - project: 'MONFEX-DEVOPS/infrastructure_builder'
+    ref: master
+    file: '/.gitlab-ci.yml'

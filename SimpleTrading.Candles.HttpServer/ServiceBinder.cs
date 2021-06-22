@@ -1,11 +1,14 @@
 using System;
 using DotNetCoreDecorators;
-using Microsoft.Extensions.DependencyInjection;
+using MyDependencies;
 using MyServiceBus.Abstractions;
 using MyServiceBus.TcpClient;
+using Serilog;
+using Serilog.Core;
 using SimpleTrading.Abstraction.BidAsk;
 using SimpleTrading.CandlesCache;
 using SimpleTrading.ServiceBus.PublisherSubscriber.BidAsk;
+using SimpleTrading.Telemetry;
 
 namespace SimpleTrading.Candles.HttpServer
 {
@@ -15,32 +18,34 @@ namespace SimpleTrading.Candles.HttpServer
         private const string AppName = "CandlesHttp";
         private static string AppNameWithEnvMark => $"{AppName}-{GetEnvInfo()}";
         
-        public static MyServiceBusTcpClient BindServiceBus(this IServiceCollection sr, SettingsModel settingsModel)
+        public static MyServiceBusTcpClient BindServiceBus(this IServiceRegistrator sr, SettingsModel settingsModel)
         {
             var tcpClient = new MyServiceBusTcpClient(() => settingsModel.ServiceBusHostPort, AppNameWithEnvMark);
             
-            sr.AddSingleton<ISubscriber<IBidAsk>>(
-                new BidAskMyServiceBusSubscriber(tcpClient, AppName, TopicQueueType.PermanentWithSingleConnection, false));
-            
+            sr.Register<ISubscriber<IBidAsk>>(new BidAskMyServiceBusSubscriber(tcpClient, AppName, TopicQueueType.PermanentWithSingleConnection, false));
+
             return tcpClient;
         }
         
-        public static MyServiceBusTcpClient BindCacheQueue(this IServiceCollection sr, SettingsModel settingsModel)
+        public static void BindCacheQueue(this IServiceRegistrator sr, SettingsModel settingsModel)
         {
-            var tcpClient = new MyServiceBusTcpClient(() => settingsModel.ServiceBusHostPort, AppNameWithEnvMark);
-            var bidAskSubscriber = new BidAskMyServiceBusSubscriber(tcpClient, AppName,
-                TopicQueueType.DeleteOnDisconnect, false);
-            
             var candlesQueue = new SaveCandleQueue();
-            var candlesHistoryCache = new CandlesHistoryCache(candlesQueue);
+            var cache = new CandlesHistoryCache(candlesQueue);
             
-            sr.AddSingleton<ISubscriber<IBidAsk>>(bidAskSubscriber);
-            sr.AddSingleton<ISaveCandleQueue>(candlesQueue);
-            sr.AddSingleton<ICandlesHistoryCache>(candlesHistoryCache);
+            sr.Register<ISaveCandleQueue>(candlesQueue);
+            sr.Register<ICandlesHistoryCache>(cache);
 
-            return tcpClient;
         }
+        
+        public static Logger BindLogger(this IServiceRegistrator sr, SettingsModel settingsModel)
+        {
+            var logger = LogsUtils.ConfigurateLogger(AppName, settingsModel.SeqUrl);
+            sr.Register<ILogger>(logger);
 
+            return logger;
+
+        }
+        
         private static string GetEnvInfo()
         {
             var info = Environment.GetEnvironmentVariable(EnvInfo);
