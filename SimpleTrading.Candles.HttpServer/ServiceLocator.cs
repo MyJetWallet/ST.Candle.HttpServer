@@ -49,6 +49,7 @@ namespace SimpleTrading.Candles.HttpServer
             CandlesHistoryCache = sr.GetService<ICandlesHistoryCache>();
             BidAskSubscriber = sr.GetService<ISubscriber<IBidAsk>>();
             Logger = sr.GetService<ILogger>();
+            InitData().Wait();
         }
 
         private static async Task InitBidAskToCandles(bool isBids)

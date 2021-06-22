@@ -49,7 +49,7 @@ namespace SimpleTrading.Candles.HttpServer
             
         }
 
-        public async Task Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -77,14 +77,13 @@ namespace SimpleTrading.Candles.HttpServer
                 endpoints.MapControllers();
                 endpoints.MapMetrics();
             });
-            await Start();
+            Start();
         }
 
-        private async Task Start()
+        private void Start()
         {
             TelemetryExtensions.StartActivity("application-start");
             {
-                await ServiceLocator.InitData();
                 BackgroundJobs.Start();
                 ServiceLocator.BindSubscribers();
                 _myServiceBusTcpClient.Start();
