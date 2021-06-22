@@ -45,7 +45,6 @@ namespace SimpleTrading.Candles.HttpServer
             Di.BindLogger(Settings);
             Di.BindGrpcServices();
             BackgroundJobs.Init();
-            ServiceLocator.BindSubscribers();
             ServiceLocator.Init(Di, GetSessionEncodingKey());
             
         }
@@ -87,6 +86,7 @@ namespace SimpleTrading.Candles.HttpServer
             {
                 await ServiceLocator.InitData();
                 BackgroundJobs.Start();
+                ServiceLocator.BindSubscribers();
                 _myServiceBusTcpClient.Start();
             }
         }
