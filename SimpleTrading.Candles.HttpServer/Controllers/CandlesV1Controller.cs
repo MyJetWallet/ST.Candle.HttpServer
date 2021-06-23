@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using SimpleTrading.Candles.HttpServer.Models;
 using SimpleTrading.Candles.HttpServer.Models.RequestResponse;
-using SimpleTrading.CandlesHistory.Grpc.Contracts;
 
 namespace SimpleTrading.Candles.HttpServer.Controllers
 {
@@ -22,17 +21,11 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
         {
             HttpContext.GetTraderId();
 
-            var grpcRequest = new GetCandlesHistoryGrpcRequestContract
-            {
-                Instrument = requestContracts.InstrumentId,
-                From = requestContracts.FromDate.UnixTimeToDateTime(),
-                To = requestContracts.ToDate.UnixTimeToDateTime(),
-                Bid = requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
-                CandleType = requestContracts.CandleType.ToGrpc()
-            };
+            var result = ServiceLocator.CandlesHistoryCache.Get(requestContracts.InstrumentId, requestContracts.CandleType,
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid, requestContracts.FromDate.UnixTimeToDateTime(),
+                requestContracts.ToDate.UnixTimeToDateTime());
 
-            var response = (await ServiceLocator.CandlesHistoryGrpc.GetCandlesHistoryAsync(grpcRequest)).ToList();
-            return response.Select(itm => itm.ToRest());
+            return result.Select(CandleApiModel.Create);
         }
 
         /// <summary>
@@ -47,16 +40,12 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
         {
             HttpContext.GetTraderId();
 
-            var grpcRequest = new GetLastCandlesGrpcRequestContract
-            {
-                Instrument = requestContracts.InstrumentId,
-                Amount = requestContracts.Amount,
-                Bid = requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
-                CandleType = requestContracts.CandleType.ToGrpc()
-            };
+            var result = ServiceLocator.CandlesHistoryCache.Get(requestContracts.InstrumentId,
+                requestContracts.CandleType,
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
+                requestContracts.Amount);
 
-            var response = (await ServiceLocator.CandlesHistoryGrpc.GetLastCandlesAsync(grpcRequest)).ToList();
-            return response.Select(itm => itm.ToRest());
+            return result.Select(CandleApiModel.Create);
         }
     }
 }

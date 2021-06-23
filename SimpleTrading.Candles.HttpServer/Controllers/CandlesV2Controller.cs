@@ -25,18 +25,12 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
             [FromQuery] [Required] CandlesHistoryV2Request requestContracts)
         {
             HttpContext.GetTraderId();
+            
+            var result = ServiceLocator.CandlesHistoryCache.Get(instrumentId, type,
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid, requestContracts.FromDate.UnixTimeToDateTime(),
+                requestContracts.ToDate.UnixTimeToDateTime());
 
-            var grpcRequest = new GetCandlesHistoryGrpcRequestContract
-            {
-                Instrument = instrumentId,
-                From = requestContracts.FromDate.UnixTimeToDateTime(),
-                To = requestContracts.ToDate.UnixTimeToDateTime(),
-                Bid = requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
-                CandleType = type.ToGrpc()
-            };
-
-            var response = (await ServiceLocator.CandlesHistoryGrpc.GetCandlesHistoryAsync(grpcRequest)).ToList();
-            return response.Select(itm => itm.ToRest());
+            return result.Select(CandleApiModel.Create);
         }
 
         [HttpGet("LastCandles/{source}/{instrumentId}/{type}")]
@@ -49,16 +43,12 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
         {
             HttpContext.GetTraderId();
 
-            var grpcRequest = new GetLastCandlesGrpcRequestContract
-            {
-                Instrument = instrumentId,
-                Amount = requestContracts.Amount,
-                Bid = requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
-                CandleType = type.ToGrpc()
-            };
+            var result = ServiceLocator.CandlesHistoryCache.Get(instrumentId,
+                type,
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
+                requestContracts.Amount);
 
-            var response = (await ServiceLocator.CandlesHistoryGrpc.GetLastCandlesAsync(grpcRequest)).ToList();
-            return response.Select(itm => itm.ToRest());
+            return result.Select(CandleApiModel.Create);
         }
     }
 }
