@@ -62,6 +62,7 @@ namespace SimpleTrading.Candles.HttpServer
             app.BindServicesTree(Assembly.GetExecutingAssembly());
             
             app.BindIsAlive();
+            app.BindMetricsMiddleware();
             
             app.UseMiddleware<TraceMiddleware>();
             app.UseMiddleware<ExceptionLogMiddleware>();
