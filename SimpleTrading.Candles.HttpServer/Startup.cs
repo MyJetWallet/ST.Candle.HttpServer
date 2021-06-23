@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyDependencies;
 using MyServiceBus.TcpClient;
+using NSwag;
 using Prometheus;
 using SimpleTrading.BaseMetrics;
 using SimpleTrading.Candles.HttpServer.Middlewares;
@@ -39,6 +40,15 @@ namespace SimpleTrading.Candles.HttpServer
             {
                 o.Title = "SimpleTrading Candles API";
                 o.GenerateEnumMappingDescription = true;
+
+                o.AddSecurity("Bearer", Enumerable.Empty<string>(),
+                    new OpenApiSecurityScheme
+                    {
+                        Type = OpenApiSecuritySchemeType.ApiKey,
+                        Description = "Bearer Token",
+                        In = OpenApiSecurityApiKeyLocation.Header,
+                        Name = "Authorization"
+                    });
             });
             _myServiceBusTcpClient = Di.BindServiceBus(Settings);
             Di.BindCacheQueue(Settings);
