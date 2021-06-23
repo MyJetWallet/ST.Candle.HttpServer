@@ -60,7 +60,7 @@ namespace SimpleTrading.Candles.HttpServer
 
             app.UseRouting();
             app.BindServicesTree(Assembly.GetExecutingAssembly());
-            app.BindMetricsMiddleware();
+            
             app.BindIsAlive();
             
             app.UseMiddleware<TraceMiddleware>();

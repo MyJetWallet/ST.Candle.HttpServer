@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
@@ -33,13 +34,17 @@ namespace SimpleTrading.Candles.HttpServer
         {
             using (TelemetryExtensions.StartActivity("load-bids-to-cache"))
             {
+                Console.WriteLine("load-bids-to-cache");
                 await InitBidAskToCandles(true);
             }
 
             using (TelemetryExtensions.StartActivity("load-asks-to-cache"))
             {
+                Console.WriteLine("load-asks-to-cache");
                 await InitBidAskToCandles(false);
             }
+            
+            Console.WriteLine("Done candles load");
         }
 
         public static void Init(IServiceResolver sr, string sessionEncodingKey)
@@ -54,11 +59,16 @@ namespace SimpleTrading.Candles.HttpServer
 
         private static async Task InitBidAskToCandles(bool isBids)
         {
+            var count = 0;
             await foreach (var itm in CandlesHistoryGrpc.GetAllFromCacheAsync(new GetAllFromCacheGrpcRequest
             {
                 IsBids = isBids,
             }))
             {
+                if (count % 5000 == 0)
+                {
+                    Console.WriteLine("Loading bid-ask");
+                }
                 CandlesHistoryCache.Init(itm.InstrumentId, isBids, itm.CandleType.ToDomain(), itm.Candle.ToDomain());
             }
         }
