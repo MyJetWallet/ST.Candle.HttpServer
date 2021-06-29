@@ -67,7 +67,7 @@ namespace SimpleTrading.Candles.HttpServer
             {
                 if (count % 5000 == 0)
                 {
-                    Console.WriteLine("Loading bid-ask");
+                    Console.WriteLine($"Loading bid-ask. Count: {count}");
                 }
                 CandlesHistoryCache.Init(itm.InstrumentId, isBids, itm.CandleType.ToDomain(), itm.Candle.ToDomain());
             }

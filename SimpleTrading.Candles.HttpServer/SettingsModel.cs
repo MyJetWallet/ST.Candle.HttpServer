@@ -7,6 +7,9 @@ namespace SimpleTrading.Candles.HttpServer
     {
         [YamlProperty("CandlesHttp.ServiceBusHostPort")]
         public string ServiceBusHostPort { get; set; }
+        
+        [YamlProperty("CandlesHttp.ServiceBusBidAskTopicName")]
+        public string ServiceBusBidAskTopicName { get; set; }
 
         [YamlProperty("CandlesHttp.ExpiresMinutes")]
         public string ExpiresMinutes { get; set; }

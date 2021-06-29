@@ -9,17 +9,15 @@ using NSwag.Annotations;
 using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.Candles.HttpServer.Models;
 using SimpleTrading.Candles.HttpServer.Models.RequestResponse;
-using SimpleTrading.CandlesHistory.Grpc.Contracts;
 
 namespace SimpleTrading.Candles.HttpServer.Controllers
 {
     [Route("api/v2/Candles")]
     public class CandlesV2Controller : ControllerBase
     {
-        [HttpGet("Candles/{source}/{instrumentId}/{type}")]
+        [HttpGet("Candles/{instrumentId}/{type}")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
         public async Task<IEnumerable<CandleApiModel>> Candles(
-            [FromRoute] string source,
             [FromRoute] string instrumentId,
             [FromRoute] CandleType type,
             [FromQuery] [Required] CandlesHistoryV2Request requestContracts)
@@ -33,10 +31,9 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
             return result.Select(CandleApiModel.Create);
         }
 
-        [HttpGet("LastCandles/{source}/{instrumentId}/{type}")]
+        [HttpGet("LastCandles/{instrumentId}/{type}")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
         public async Task<IEnumerable<CandleApiModel>> LastCandles(
-            [FromRoute] string source,
             [FromRoute] string instrumentId,
             [FromRoute] CandleType type,
             [FromQuery] [Required] LastCandlesV2Request requestContracts)
