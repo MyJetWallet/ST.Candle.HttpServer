@@ -24,7 +24,7 @@ namespace SimpleTrading.Candles.HttpServer.Middlewares
             {
                 ex.WriteToActivity();
                 ServiceLocator.Logger.Error(ex, ex.Message);
-                
+                throw;
             }
         }
 

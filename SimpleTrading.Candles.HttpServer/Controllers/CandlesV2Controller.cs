@@ -9,6 +9,7 @@ using NSwag.Annotations;
 using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.Candles.HttpServer.Models;
 using SimpleTrading.Candles.HttpServer.Models.RequestResponse;
+using SimpleTrading.CandlesCache;
 
 namespace SimpleTrading.Candles.HttpServer.Controllers
 {
@@ -43,9 +44,18 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
             var result = ServiceLocator.CandlesHistoryCache.Get(instrumentId,
                 type,
                 requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
-                requestContracts.Amount);
+                requestContracts.Amount * requestContracts.MergeCandlesCount);
 
-            return result.Select(CandleApiModel.Create);
+            if (requestContracts.MergeCandlesCount == 0)
+            {
+                return result.Select(CandleApiModel.Create);
+            }
+
+            var mergedCandles = result
+                .SplitToChunks(requestContracts.MergeCandlesCount)
+                .Select(itm => itm.Merge());
+            
+            return mergedCandles.Select(CandleApiModel.Create);
         }
     }
 }
