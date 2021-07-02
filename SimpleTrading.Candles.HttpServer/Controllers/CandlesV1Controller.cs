@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -16,16 +17,25 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
     {
         [HttpGet("Candles")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
-        public async Task<IEnumerable<CandleApiModel>> Candles(
+        public async Task<IActionResult> Candles(
             [FromQuery] [Required] CandlesHistoryRequest requestContracts)
         {
-            HttpContext.GetTraderId();
+            try
+            {
+                HttpContext.GetTraderId();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized("UnAuthorized request");
+            }
 
-            var result = ServiceLocator.CandlesHistoryCache.Get(requestContracts.InstrumentId, requestContracts.CandleType,
-                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid, requestContracts.FromDate.UnixTimeToDateTime(),
+            var result = ServiceLocator.CandlesHistoryCache.Get(requestContracts.InstrumentId,
+                requestContracts.CandleType,
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
+                requestContracts.FromDate.UnixTimeToDateTime(),
                 requestContracts.ToDate.UnixTimeToDateTime());
 
-            return result.Select(CandleApiModel.Create);
+            return Ok(result.Select(CandleApiModel.Create));
         }
 
         /// <summary>
@@ -35,17 +45,24 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
         /// <returns></returns>
         [HttpGet("LastCandles")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
-        public async Task<IEnumerable<CandleApiModel>> LastCandles(
+        public async Task<IActionResult> LastCandles(
             [FromQuery] [Required] LastCandlesRequest requestContracts)
         {
-            HttpContext.GetTraderId();
+            try
+            {
+                HttpContext.GetTraderId();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized("UnAuthorized request");
+            }
 
             var result = ServiceLocator.CandlesHistoryCache.Get(requestContracts.InstrumentId,
                 requestContracts.CandleType,
                 requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
                 requestContracts.Amount);
 
-            return result.Select(CandleApiModel.Create);
+            return Ok(result.Select(CandleApiModel.Create));
         }
     }
 }

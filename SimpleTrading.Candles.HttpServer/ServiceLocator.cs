@@ -70,6 +70,7 @@ namespace SimpleTrading.Candles.HttpServer
                     Console.WriteLine($"Loading bid-ask. Count: {count}");
                 }
                 CandlesHistoryCache.Init(itm.InstrumentId, isBids, itm.CandleType.ToDomain(), itm.Candle.ToDomain());
+                count++;
             }
         }
     }

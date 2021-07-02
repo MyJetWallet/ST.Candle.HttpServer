@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -18,28 +19,51 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
     {
         [HttpGet("Candles/{instrumentId}/{type}")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
-        public async Task<IEnumerable<CandleApiModel>> Candles(
+        public async Task<IActionResult> Candles(
             [FromRoute] string instrumentId,
             [FromRoute] CandleType type,
             [FromQuery] [Required] CandlesHistoryV2Request requestContracts)
         {
-            HttpContext.GetTraderId();
-            
+            try
+            {
+                HttpContext.GetTraderId();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized("UnAuthorized request");
+            }
+
+
             var result = ServiceLocator.CandlesHistoryCache.Get(instrumentId, type,
-                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid, requestContracts.FromDate.UnixTimeToDateTime(),
+                requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,
+                requestContracts.FromDate.UnixTimeToDateTime(),
                 requestContracts.ToDate.UnixTimeToDateTime());
 
-            return result.Select(CandleApiModel.Create);
+            if (requestContracts.MergeCandlesCount == 1)
+                return Ok(result.Select(CandleApiModel.Create));
+
+            var mergedCandles = result
+                .SplitToChunks(requestContracts.MergeCandlesCount)
+                .Select(itm => itm.Merge());
+
+            return Ok(mergedCandles.Select(CandleApiModel.Create));
         }
 
         [HttpGet("LastCandles/{instrumentId}/{type}")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
-        public async Task<IEnumerable<CandleApiModel>> LastCandles(
+        public async Task<IActionResult> LastCandles(
             [FromRoute] string instrumentId,
             [FromRoute] CandleType type,
             [FromQuery] [Required] LastCandlesV2Request requestContracts)
         {
-            HttpContext.GetTraderId();
+            try
+            {
+                HttpContext.GetTraderId();
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized("UnAuthorized request");
+            }
 
             var result = ServiceLocator.CandlesHistoryCache.Get(instrumentId,
                 type,
@@ -48,14 +72,14 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
 
             if (requestContracts.MergeCandlesCount == 0)
             {
-                return result.Select(CandleApiModel.Create);
+                return Ok(result.Select(CandleApiModel.Create));
             }
 
             var mergedCandles = result
                 .SplitToChunks(requestContracts.MergeCandlesCount)
                 .Select(itm => itm.Merge());
-            
-            return mergedCandles.Select(CandleApiModel.Create);
+
+            return Ok(mergedCandles.Select(CandleApiModel.Create));
         }
     }
 }
