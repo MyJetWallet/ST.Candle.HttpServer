@@ -24,7 +24,7 @@ namespace SimpleTrading.Candles.HttpServer
         {
             var tcpClient = new MyServiceBusTcpClient(() => settingsModel.ServiceBusHostPort, AppNameWithEnvMark);
 
-            sr.Register<ISubscriber<IBidAsk>>(new BidAskMyServiceBusSubscriber(tcpClient, AppName,
+            sr.Register<ISubscriber<IBidAsk>>(new BidAskMyServiceBusSubscriber(tcpClient, AppNameWithEnvMark,
                 TopicQueueType.PermanentWithSingleConnection, settingsModel.ServiceBusBidAskTopicName));
 
             return tcpClient;
