@@ -8,6 +8,7 @@ using SimpleTrading.Abstraction.BidAsk;
 using SimpleTrading.CandlesCache;
 using SimpleTrading.CandlesHistory.Grpc;
 using SimpleTrading.CandlesHistory.Grpc.Contracts;
+using SimpleTrading.ServiceBus.Contracts;
 using SimpleTrading.Telemetry;
 
 namespace SimpleTrading.Candles.HttpServer
@@ -15,10 +16,17 @@ namespace SimpleTrading.Candles.HttpServer
     public static class ServiceLocator
     {
         public static ISimpleTradingCandlesHistoryGrpc CandlesHistoryGrpc { get; set; }
+       
         public static SettingsModel SettingsModel { get; set; }
+        
         public static byte[] SessionEncodingKey { get; private set; }
+        
         public static ICandlesHistoryCache CandlesHistoryCache { get; private set; }
+        
         public static ISubscriber<IBidAsk> BidAskSubscriber { get; private set; }
+        
+        public static ISubscriber<UpdateCandlesHistoryServiceBusContract> UpdateCandlesSubscriber { get; private set; }
+
         public static ILogger Logger { get; private set; }
 
         public static void BindSubscribers()
@@ -27,6 +35,11 @@ namespace SimpleTrading.Candles.HttpServer
             {
                 CandlesHistoryCache.NewBidAsk(itm.Id, new[] { itm });
                 return new ValueTask();
+            });
+
+            UpdateCandlesSubscriber.Subscribe(async updateEvent =>
+            {
+                await UpdateCandles(updateEvent, true);
             });
         }
 
@@ -53,6 +66,7 @@ namespace SimpleTrading.Candles.HttpServer
             CandlesHistoryGrpc = sr.GetService<ISimpleTradingCandlesHistoryGrpc>();
             CandlesHistoryCache = sr.GetService<ICandlesHistoryCache>();
             BidAskSubscriber = sr.GetService<ISubscriber<IBidAsk>>();
+            UpdateCandlesSubscriber = sr.GetService<ISubscriber<UpdateCandlesHistoryServiceBusContract>>();
             Logger = sr.GetService<ILogger>();
             InitData().Wait();
         }
@@ -69,7 +83,38 @@ namespace SimpleTrading.Candles.HttpServer
                 {
                     Console.WriteLine($"Loading bid-ask. Count: {count}");
                 }
-                CandlesHistoryCache.Init(itm.InstrumentId, isBids, itm.CandleType.ToDomain(), itm.Candle.ToDomain());
+                CandlesHistoryCache.Init(
+                    itm.InstrumentId,
+                    isBids,
+                    itm.CandleType.ToDomain(),
+                    itm.Candle.ToDomain());
+                count++;
+            }
+        }
+
+        private static async Task UpdateCandles(UpdateCandlesHistoryServiceBusContract updateEvent, bool isBids)
+        {
+            var count = 0;
+            await foreach (var itm in CandlesHistoryGrpc.GetCandlesHistoryStream(
+                new GetCandlesHistoryGrpcRequestContract
+                {
+                    Instrument = updateEvent.InstrumentId,
+                    CandleType = updateEvent.CandleType,
+                    Bid = isBids,
+                    From = updateEvent.DateFrom,
+                    To = updateEvent.DateTo,
+                    Source = "ST"
+                }))
+            {
+                if (count % 5000 == 0)
+                {
+                    Console.WriteLine($"Loading bid-ask. Count: {count}");
+                }
+                CandlesHistoryCache.Init(
+                    updateEvent.InstrumentId,
+                    isBids,
+                    updateEvent.CandleType.ToDomain(),
+                    itm.ToDomain());
                 count++;
             }
         }

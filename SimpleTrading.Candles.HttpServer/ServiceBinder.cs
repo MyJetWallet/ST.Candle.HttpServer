@@ -9,7 +9,10 @@ using SimpleTrading.Abstraction.BidAsk;
 using SimpleTrading.CandlesCache;
 using SimpleTrading.CandlesHistory.Grpc;
 using SimpleTrading.GrpcTemplate;
+using SimpleTrading.ServiceBus;
+using SimpleTrading.ServiceBus.Contracts;
 using SimpleTrading.ServiceBus.PublisherSubscriber.BidAsk;
+using SimpleTrading.ServiceBus.PublisherSubscriber.CandlesHistory;
 using SimpleTrading.Telemetry;
 
 namespace SimpleTrading.Candles.HttpServer
@@ -24,8 +27,20 @@ namespace SimpleTrading.Candles.HttpServer
         {
             var tcpClient = new MyServiceBusTcpClient(() => settingsModel.ServiceBusHostPort, AppNameWithEnvMark);
 
-            sr.Register<ISubscriber<IBidAsk>>(new BidAskMyServiceBusSubscriber(tcpClient, AppNameWithEnvMark,
-                TopicQueueType.PermanentWithSingleConnection, settingsModel.ServiceBusBidAskTopicName));
+            sr.Register<ISubscriber<IBidAsk>>(
+                new BidAskMyServiceBusSubscriber(
+                    tcpClient,
+                    AppNameWithEnvMark,
+                    TopicQueueType.PermanentWithSingleConnection,
+                    settingsModel.ServiceBusBidAskTopicName));
+
+            sr.Register<ISubscriber<UpdateCandlesHistoryServiceBusContract>>(
+                new CandlesHistoryMyServiceBusSubscriber(
+                    tcpClient,
+                    AppNameWithEnvMark,
+                    TopicQueueType.PermanentWithSingleConnection,
+                    TopicNames.UpdateCandlesHistory,
+                    false));
 
             return tcpClient;
         }
