@@ -30,4 +30,13 @@ namespace SimpleTrading.Candles.HttpServer.Models.RequestResponse
         public long ToDate { get; set; }
         public int MergeCandlesCount { get; set; } = 1;
     }
+    
+    public class CandlesHistoryV3Request
+    {
+        public string Instruction { get; set; }
+        public CandlesContractBidOrAsk BidOrAsk { get; set; }
+        public long FromDate { get; set; }
+        public long ToDate { get; set; }
+        public int MergeCandlesCount { get; set; } = 1;
+    }
 }

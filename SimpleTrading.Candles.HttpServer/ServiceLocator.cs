@@ -39,7 +39,10 @@ namespace SimpleTrading.Candles.HttpServer
 
             UpdateCandlesSubscriber.Subscribe(async updateEvent =>
             {
-                await UpdateCandles(updateEvent, true);
+                if (updateEvent.CacheIsUpdated)
+                {
+                    await UpdateCandles(updateEvent, true);
+                }
             });
         }
 
@@ -86,7 +89,7 @@ namespace SimpleTrading.Candles.HttpServer
                 CandlesHistoryCache.Init(
                     itm.InstrumentId,
                     isBids,
-                    itm.CandleType.ToDomain(),
+                    itm.CandleType,
                     itm.Candle.ToDomain());
                 count++;
             }
@@ -113,7 +116,7 @@ namespace SimpleTrading.Candles.HttpServer
                 CandlesHistoryCache.Init(
                     updateEvent.InstrumentId,
                     isBids,
-                    updateEvent.CandleType.ToDomain(),
+                    updateEvent.CandleType,
                     itm.ToDomain());
                 count++;
             }
