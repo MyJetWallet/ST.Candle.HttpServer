@@ -27,6 +27,8 @@ namespace SimpleTrading.Candles.HttpServer
         {
             var tcpClient = new MyServiceBusTcpClient(() => settingsModel.ServiceBusHostPort, AppNameWithEnvMark);
 
+            tcpClient.CreateTopicIfNotExists(TopicNames.UpdateCandlesHistory);
+            
             sr.Register<ISubscriber<IBidAsk>>(
                 new BidAskMyServiceBusSubscriber(
                     tcpClient,

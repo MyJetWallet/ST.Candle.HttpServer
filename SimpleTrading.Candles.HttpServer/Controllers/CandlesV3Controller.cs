@@ -18,12 +18,11 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
     [Route("api/v3/Candles")]
     public class CandlesV3Controller : ControllerBase
     {
-        [HttpGet("Candles/{instruction}/{type}")]
+        [HttpGet("Candles/{type}")]
         [SwaggerResponse(HttpStatusCode.OK, typeof(List<CandleApiModel>), Description = "Ok")]
         public async Task<IActionResult> Candles(
-            [FromRoute] string instruction, // to query
             [FromRoute] CandleType type,
-            [FromQuery] [Required] CandlesHistoryV2Request requestContracts)
+            [FromQuery] [Required] CandlesHistoryV3Request requestContracts)
         {
             try
             {
@@ -38,7 +37,7 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
 
             try
             {
-                var subs = instruction.Split(";");
+                var subs = requestContracts.Instruction.Split(";");
 
                 foreach (var sub in subs)
                 {
@@ -46,7 +45,7 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
 
                     if (subsBySub.Length == 1)
                     {
-                        return Ok(GetCandles(instruction, type, requestContracts));
+                        return Ok(GetCandles(requestContracts.Instruction, type, requestContracts));
                     }
 
                     var symbol = subsBySub[0];
@@ -132,17 +131,17 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
             var koef = useOpen ? candle.O : candle.C;
             if (isDirect)
             {
-                resCandle.O = Math.Round(candle.O * koef, 8);
-                resCandle.C = Math.Round(candle.C * koef, 8);
-                resCandle.H = Math.Round(candle.H * koef, 8);
-                resCandle.L = Math.Round(candle.L * koef, 8);
+                resCandle.O = Math.Round(resCandle.O * koef, 8);
+                resCandle.C = Math.Round(resCandle.C * koef, 8);
+                resCandle.H = Math.Round(resCandle.H * koef, 8);
+                resCandle.L = Math.Round(resCandle.L * koef, 8);
             }
             else
             {
-                resCandle.O = Math.Round(candle.O / koef, 8);
-                resCandle.C = Math.Round(candle.C / koef, 8);
-                resCandle.H = Math.Round(candle.H / koef, 8);
-                resCandle.L = Math.Round(candle.L / koef, 8);
+                resCandle.O = Math.Round(resCandle.O / koef, 8);
+                resCandle.C = Math.Round(resCandle.C / koef, 8);
+                resCandle.H = Math.Round(resCandle.H / koef, 8);
+                resCandle.L = Math.Round(resCandle.L / koef, 8);
             }
         }
 
@@ -159,7 +158,7 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
             return reversedCandles;
         }
 
-        private IEnumerable<CandleApiModel> GetCandles(string instrumentSymbol, CandleType type, CandlesHistoryV2Request requestContracts)
+        private IEnumerable<CandleApiModel> GetCandles(string instrumentSymbol, CandleType type, CandlesHistoryV3Request requestContracts)
         {
             var result = ServiceLocator.CandlesHistoryCache.Get(instrumentSymbol, type,
                 requestContracts.BidOrAsk == CandlesContractBidOrAsk.Bid,

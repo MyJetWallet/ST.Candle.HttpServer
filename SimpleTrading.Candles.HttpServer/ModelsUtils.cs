@@ -9,30 +9,6 @@ namespace SimpleTrading.Candles.HttpServer
 {
     public static class ModelsUtils
     {
-        public static CandleType ToDomain(this CandleTypeGrpcModel src)
-        {
-            return src switch
-            {
-                CandleTypeGrpcModel.Minute => CandleType.Minute,
-                CandleTypeGrpcModel.Hour => CandleType.Hour,
-                CandleTypeGrpcModel.Day => CandleType.Day,
-                CandleTypeGrpcModel.Month => CandleType.Month,
-                _ => throw new ArgumentOutOfRangeException(nameof(src), src, null)
-            };
-        }
-        
-        public static CandleTypeGrpcModel ToGrpc(this CandleType src)
-        {
-            return src switch
-            {
-                CandleType.Minute => CandleTypeGrpcModel.Minute,
-                CandleType.Hour => CandleTypeGrpcModel.Hour,
-                CandleType.Day => CandleTypeGrpcModel.Day,
-                CandleType.Month => CandleTypeGrpcModel.Month,
-                _ => throw new ArgumentOutOfRangeException(nameof(src), src, null)
-            };
-        }
-
         public static CandleApiModel ToRest(this CandleGrpcModel src)
         {
             return new CandleApiModel
