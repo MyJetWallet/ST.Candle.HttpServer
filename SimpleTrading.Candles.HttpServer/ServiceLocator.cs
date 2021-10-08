@@ -41,7 +41,21 @@ namespace SimpleTrading.Candles.HttpServer
             {
                 if (updateEvent.CacheIsUpdated)
                 {
+                    Logger.Information(
+                        "CandlesHttpServer - Updating candles cache after upload: {id}[type-{type}] candles for {dateFrom}-{dateTo} get started",
+                        updateEvent.InstrumentId,
+                        updateEvent.CandleType,
+                        updateEvent.DateFrom,
+                        updateEvent.DateTo);
+
                     await UpdateCandles(updateEvent, true);
+
+                    Logger.Information(
+                       "CandlesHttpServer - Updating candles cache after upload: {id}[type-{type}] candles for {dateFrom}-{dateTo} get finished",
+                       updateEvent.InstrumentId,
+                       updateEvent.CandleType,
+                       updateEvent.DateFrom,
+                       updateEvent.DateTo);
                 }
             });
         }
