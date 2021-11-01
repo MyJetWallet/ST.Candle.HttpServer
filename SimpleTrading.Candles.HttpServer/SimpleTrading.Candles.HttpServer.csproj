@@ -27,4 +27,10 @@
         <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Dockerfile">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
