@@ -26,8 +26,8 @@ namespace SimpleTrading.Candles.HttpServer.Middlewares
                 var (_, token) = TokensManager.TokensManager.ParseBase64Token<AuthorizationToken>(items[^1],
                     ServiceLocator.SessionEncodingKey, DateTime.UtcNow);
 
-                token.Id.AddToActivityAndChildren("traderId");
-                token.Id.AddToActivityAsTag("traderId");
+                token?.Id.AddToActivityAndChildren("traderId");
+                token?.Id.AddToActivityAsTag("traderId");
             }
 
             await _next(context);
