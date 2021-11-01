@@ -22,5 +22,17 @@ namespace SimpleTrading.Candles.HttpServer.Models
                 O = src.Open
             };
         }
+        
+        public static CandleApiModel Copy(CandleApiModel src)
+        {
+            return new CandleApiModel
+            {
+                D = src.D,
+                C = src.C,
+                H = src.H,
+                L = src.L,
+                O = src.O
+            };
+        }
     }
 }

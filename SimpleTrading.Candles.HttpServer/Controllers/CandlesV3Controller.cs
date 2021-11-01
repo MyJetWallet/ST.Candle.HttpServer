@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using NSwag.Annotations;
 using SimpleTrading.Abstraction.Candles;
+using SimpleTrading.Candles.HttpServer.Extensions;
 using SimpleTrading.Candles.HttpServer.Models;
 using SimpleTrading.Candles.HttpServer.Models.RequestResponse;
 using SimpleTrading.CandlesCache;
@@ -84,8 +85,15 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
 
                 if (resultCandles.Any())
                 {
-                    resultCandles = resultCandles.OrderBy(e => e.D).ToList();
-                    candles = candles.OrderBy(e => e.D).ToList();
+                    if (resultCandles.Count != candles.Count)
+                    {
+                        (resultCandles, candles) = NormalizeCandles(resultCandles, candles);
+                    }
+                    else
+                    {
+                        resultCandles = resultCandles.OrderBy(e => e.D).ToList();
+                        candles = candles.OrderBy(e => e.D).ToList();
+                    }
 
                     if (!candles.Any())
                     {
@@ -124,6 +132,55 @@ namespace SimpleTrading.Candles.HttpServer.Controllers
                 }
             }
             return Ok(resultCandles);
+        }
+
+        public static (List<CandleApiModel>, List<CandleApiModel>) NormalizeCandles(List<CandleApiModel> list1, List<CandleApiModel> list2)
+        {
+            var maxIterationNumber = list1.Count + list2.Count + 1;
+            var iteration = 0;
+
+            list1 = list1.OrderBy(e => e.D).ToList();
+            list2 = list2.OrderBy(e => e.D).ToList();
+            
+            while (iteration < maxIterationNumber)
+            {
+                CandleApiModel list1Elem = null;
+                CandleApiModel list2Elem = null;
+                if (list1.TryGetValue(iteration, out var result1))
+                    list1Elem = result1;
+                
+                if (list2.TryGetValue(iteration, out var result2))
+                    list2Elem = result2;
+                if (list1Elem == null && list2Elem == null)
+                {
+                    break;
+                }
+                else if (list1Elem == null)
+                {
+                    list2.Remove(list2Elem);
+                } 
+                else if (list2Elem == null)
+                {
+                    list1.Remove(list1Elem);
+                }
+                else if (list1Elem.D < list2Elem.D)
+                {
+                    list1.Remove(list1Elem);
+                } 
+                else if (list2Elem.D < list1Elem.D)
+                {
+                    list2.Remove(list2Elem);
+                }
+                else if (list1Elem.D == list2Elem.D)
+                {
+                    iteration ++;
+                }
+                else
+                {
+                    Console.WriteLine($"ERROR. Find straight scenario in NormalizeCandles.");
+                }
+            }
+            return (list1, list2);
         }
 
         private void MergeCandles(CandleApiModel resCandle, CandleApiModel candle, bool isDirect, bool useOpen = false)
