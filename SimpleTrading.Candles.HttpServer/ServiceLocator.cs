@@ -26,6 +26,8 @@ namespace SimpleTrading.Candles.HttpServer
         public static ISubscriber<IBidAsk> BidAskSubscriber { get; private set; }
         
         public static ISubscriber<UpdateCandlesHistoryServiceBusContract> UpdateCandlesSubscriber { get; private set; }
+        
+        public static ISubscriber<CandleMigrationServiceBusContract> MigrationCandlesSubscriber { get; private set; }
 
         public static ILogger Logger { get; private set; }
 
@@ -84,8 +86,13 @@ namespace SimpleTrading.Candles.HttpServer
             CandlesHistoryCache = sr.GetService<ICandlesHistoryCache>();
             BidAskSubscriber = sr.GetService<ISubscriber<IBidAsk>>();
             UpdateCandlesSubscriber = sr.GetService<ISubscriber<UpdateCandlesHistoryServiceBusContract>>();
+            MigrationCandlesSubscriber = sr.GetService<ISubscriber<CandleMigrationServiceBusContract>>();
+
             Logger = sr.GetService<ILogger>();
             InitData().Wait();
+            
+            MigrationCandlesSubscriber.Subscribe(async candle => CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data));
+
         }
 
         private static async Task InitBidAskToCandles(bool isBids)

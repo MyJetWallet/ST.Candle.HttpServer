@@ -13,11 +13,11 @@
         <PackageReference Include="NSwag.AspNetCore" Version="13.13.2" />
         <PackageReference Include="SimpleTrading.Abstraction" Version="2.0.19" />
         <PackageReference Include="SimpleTrading.BaseMetrics" Version="1.0.3" />
-        <PackageReference Include="SimpleTrading.CandlesCache" Version="1.0.5" />
+        <PackageReference Include="SimpleTrading.CandlesCache" Version="1.0.6" />
         <PackageReference Include="SimpleTrading.CandlesHistory.Grpc" Version="1.0.17" />
         <PackageReference Include="SimpleTrading.GrpcTemplate" Version="1.0.4" />
         <PackageReference Include="SimpleTrading.MyNoSqlRepositories" Version="2.0.39" />
-        <PackageReference Include="SimpleTrading.ServiceBus" Version="4.0.11" />
+        <PackageReference Include="SimpleTrading.ServiceBus" Version="4.0.17" />
         <PackageReference Include="SimpleTrading.ServiceStatusReporterConnector" Version="1.0.9" />
         <PackageReference Include="SimpleTrading.Telemetry" Version="1.0.3" />
         <PackageReference Include="SimpleTrading.TokensManager" Version="1.3.2" />

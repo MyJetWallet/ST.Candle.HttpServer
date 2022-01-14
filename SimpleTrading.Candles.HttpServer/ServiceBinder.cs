@@ -12,6 +12,7 @@ using SimpleTrading.GrpcTemplate;
 using SimpleTrading.ServiceBus;
 using SimpleTrading.ServiceBus.Contracts;
 using SimpleTrading.ServiceBus.PublisherSubscriber.BidAsk;
+using SimpleTrading.ServiceBus.PublisherSubscriber.CandleMigration;
 using SimpleTrading.ServiceBus.PublisherSubscriber.CandlesHistory;
 using SimpleTrading.Telemetry;
 
@@ -43,6 +44,12 @@ namespace SimpleTrading.Candles.HttpServer
                     TopicQueueType.PermanentWithSingleConnection,
                     TopicNames.UpdateCandlesHistory,
                     false));
+            
+            sr.Register<ISubscriber<CandleMigrationServiceBusContract>>(
+                new CandlesMigrationMyServiceBusSubscriber(
+                    tcpClient,
+                    AppNameWithEnvMark,
+                    TopicQueueType.PermanentWithSingleConnection));
 
             return tcpClient;
         }
