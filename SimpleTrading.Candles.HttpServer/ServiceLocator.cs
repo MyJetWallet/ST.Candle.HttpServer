@@ -5,6 +5,7 @@ using DotNetCoreDecorators;
 using MyDependencies;
 using Serilog;
 using SimpleTrading.Abstraction.BidAsk;
+using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.CandlesCache;
 using SimpleTrading.CandlesHistory.Grpc;
 using SimpleTrading.CandlesHistory.Grpc.Contracts;
@@ -92,6 +93,33 @@ namespace SimpleTrading.Candles.HttpServer
             InitData().Wait();
             
             MigrationCandlesSubscriber.Subscribe(async candle => CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data));
+            
+            MigrationCandlesSubscriber.Subscribe(async candle =>
+            {
+                var minuteExpirationDate = DateTime.UtcNow - TimeSpan.Parse(SettingsModel.ExpiresMinutes);
+                var hourExpirationDate = DateTime.UtcNow - TimeSpan.Parse(SettingsModel.ExpiresHours);
+
+                switch (candle.Candle)
+                {
+                    case CandleType.Minute:
+                    {
+                        if (candle.Data.DateTime > minuteExpirationDate)
+                            CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data);
+                        break;
+                    }
+                    case CandleType.Hour:
+                    {
+                        if (candle.Data.DateTime > hourExpirationDate)
+                            CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data);
+                        break;
+                    }
+                    case CandleType.Day:
+                    case CandleType.Month:
+                    default:
+                        CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data);
+                        break;
+                }
+            });
 
         }
 
