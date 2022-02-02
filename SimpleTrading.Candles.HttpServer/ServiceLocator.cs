@@ -92,8 +92,6 @@ namespace SimpleTrading.Candles.HttpServer
             Logger = sr.GetService<ILogger>();
             InitData().Wait();
             
-            MigrationCandlesSubscriber.Subscribe(async candle => CandlesHistoryCache.UpdateCandle(candle.Symbol, candle.Candle, candle.IsBid, candle.Data));
-            
             MigrationCandlesSubscriber.Subscribe(async candle =>
             {
                 var minuteExpirationDate = DateTime.UtcNow - TimeSpan.Parse(SettingsModel.ExpiresMinutes);
