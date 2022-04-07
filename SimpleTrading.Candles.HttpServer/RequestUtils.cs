@@ -23,17 +23,30 @@ namespace SimpleTrading.Candles.HttpServer
         {
             try
             {
-                var (result ,token) = TokensManager.TokensManager.ParseBase64Token<AuthorizationToken>(tokenString, ServiceLocator.SessionEncodingKey, DateTime.UtcNow);
+                var (result, token) = TokensManager.TokensManager.ParseBase64Token<AuthorizationToken>(tokenString,
+                    ServiceLocator.SessionEncodingKey, DateTime.UtcNow);
 
-                return result switch
+                if (result == TokenParseResult.Expired)
                 {
-                    TokenParseResult.Expired => throw new UnauthorizedAccessException("UnAuthorized request"),
-                    TokenParseResult.InvalidToken => throw new UnauthorizedAccessException("UnAuthorized request"),
-                    _ => token.Id
-                };
+                    Console.WriteLine($"Session Expired: {token?.TraderId()}");
+                    throw new UnauthorizedAccessException("UnAuthorized request");
+                }
+
+                if (result == TokenParseResult.InvalidToken)
+                {
+                    Console.WriteLine($"Session Invalid: {tokenString}");
+                    throw new UnauthorizedAccessException("UnAuthorized request");
+                }
+
+                return token.Id;
             }
-            catch (Exception)
+            catch (UnauthorizedAccessException)
             {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Auth error: {ex}");
                 throw new UnauthorizedAccessException("UnAuthorized request");
             }
         }
